@@ -4,11 +4,16 @@ source ./common.sh
 
 check_root  
 
-dnf install mysql-server -y &>>$LOG_FILE
-VALIDATE $? "Installing Mysql Server"
-systemctl enable mysqld &>>$LOG_FILE
-systemctl start mysqld  
-VALIDATE $? "Enabling and Starting Mysql Server"
-mysql_secure_installation --set-root-pass RoboShop@1 &>>$LOG_FILE
-VALIDATE $? "Setting Root Password to Mysql Server"
+cp $SCRIPT_DIR/rabbitmq.repo /etc/yum.repos.d/rabbitmq.repo &>>$LOG_FILE
+VALIDATE $? "Adding RabbitMQ repo"
+dnf install rabbitmq-server -y &>>$LOG_FILE
+VALIDATE $? "Installing RabbitMQ Server" 
+systemctl enable rabbitmq-server &>>$LOG_FILE
+VALIDATE $? "Enabling RabbitMQ Server" 
+systemctl start rabbitmq-server &>>$LOG_FILE
+VALIDATE $? "Starting RabbitMQ Server" 
+rabbitmqctl add_user roboshop roboshop123 &>>$LOG_FILE
+rabbitmqctl set_permissions -p / roboshop ".*" ".*" ".*" &>>$LOG_FILE
+VALIDATE $? "Setting up permissions"
+
 print_total_time
